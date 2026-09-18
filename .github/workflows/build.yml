@@ -1,5 +1,5 @@
 name: Build VYVO APK
-on: [push, workflow_dispatch]
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -7,30 +7,19 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
       - uses: android-actions/setup-android@v3
-      - name: Build VYVO
+      - name: Build
         run: |
-          mkdir -p app/src/main/java/com/vyvo/app
-          cat > settings.gradle <<'EOF'
-          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
-          include ':app'
-          EOF
-          cat > app/build.gradle <<'EOF'
-          plugins { id 'com.android.application' version '8.1.4' }
-          android { namespace 'com.vyvo.app'; compileSdk 34; defaultConfig { applicationId "com.vyvo.app"; minSdk 21; targetSdk 34; versionCode 1; versionName "1.0" } }
-          EOF
-          cat > app/src/main/AndroidManifest.xml <<'EOF'
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:label="VYVO" android:theme="@android:style/Theme.Black.NoTitleBar"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>
-          EOF
-          cat > app/src/main/java/com/vyvo/app/MainActivity.java <<'EOF'
-          package com.vyvo.app; import android.app.Activity; import android.os.Bundle; import android.widget.*; import android.graphics.Color; import android.view.Gravity;
-          public class MainActivity extends Activity { protected void onCreate(Bundle b){ super.onCreate(b); LinearLayout l=new LinearLayout(this); l.setOrientation(1); l.setBackgroundColor(Color.BLACK); l.setGravity(Gravity.CENTER); TextView t=new TextView(this); t.setText("VYVO\nOfficielle"); t.setTextColor(Color.parseColor("#D4AF37")); t.setTextSize(40); t.setGravity(Gravity.CENTER); l.addView(t); setContentView(l); } }
-          EOF
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip && unzip -q gradle-8.4-bin.zip
-          ./gradle-8.4/bin/gradle :app:assembleDebug
+          mkdir -p app/src/main/java/com/vyvo/app
+          echo "include ':app'" > settings.gradle
+          echo "plugins { id 'com.android.application' version '8.1.4' }" > app/build.gradle
+          echo "android { namespace 'com.vyvo.app'; compileSdk 34; defaultConfig { applicationId 'com.vyvo.app'; minSdk 21; targetSdk 34 } }" >> app/build.gradle
+          echo "<manifest xmlns:android='http://schemas.android.com/apk/res/android'><application android:label='VYVO'><activity android:name='.MainActivity' android:exported='true'><intent-filter><action android:name='android.intent.action.MAIN'/><category android:name='android.intent.category.LAUNCHER'/></intent-filter></activity></application></manifest>" > app/src/main/AndroidManifest.xml
+          echo "package com.vyvo.app; import android.app.Activity; import android.os.Bundle; import android.widget.TextView; public class MainActivity extends Activity { protected void onCreate(Bundle b){ super.onCreate(b); TextView t=new TextView(this); t.setText(\"VYVO\"); setContentView(t);} }" > app/src/main/java/com/vyvo/app/MainActivity.java
+          wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip && unzip -q gradle-8.4-bin.zip &&./gradle-8.4/bin/gradle :app:assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: VYVO-APK
