@@ -10,16 +10,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: android-actions/setup-android@v3
-      - run: |
-          echo "include ':app'" > settings.gradle
-          mkdir -p app/src/main/java/com/vyvo/app
-          echo "plugins { id 'com.android.application' version '8.1.4' } android { namespace 'com.vyvo.app'; compileSdk 34; defaultConfig { applicationId 'com.vyvo.app'; minSdk 21; targetSdk 34 } }" > app/build.gradle
-          echo '<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:label="VYVO"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
-          echo 'package com.vyvo.app; import android.app.Activity; import android.os.Bundle; import android.widget.TextView; public class MainActivity extends Activity { protected void onCreate(Bundle b){ super.onCreate(b); TextView t=new TextView(this); t.setText("VYVO"); setContentView(t); } }' > app/src/main/java/com/vyvo/app/MainActivity.java
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip
-          unzip -q gradle-8.4-bin.zip
-          ./gradle-8.4/bin/gradle :app:assembleDebug --no-daemon
+      - run: rm -rf app && mkdir -p app/src/main/java/com/vyvo/app && echo "include ':app'" > settings.gradle && echo "plugins { id 'com.android.application' version '8.1.4' }" > app/build.gradle && echo "android { namespace 'com.vyvo.app'; compileSdk 34; defaultConfig { applicationId 'com.vyvo.app'; minSdk 21; targetSdk 34 } }" >> app/build.gradle && mkdir -p app/src/main && echo '<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:label="VYVO"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml && echo 'package com.vyvo.app; import android.app.Activity; import android.os.Bundle; import android.widget.TextView; public class MainActivity extends Activity { protected void onCreate(Bundle b){ super.onCreate(b); TextView t=new TextView(this); t.setText("VYVO"); setContentView(t); } }' > app/src/main/java/com/vyvo/app/MainActivity.java && echo "sdk.dir=$ANDROID_HOME" > local.properties && wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip && unzip -q gradle-8.4-bin.zip &&./gradle-8.4/bin/gradle wrapper --gradle-version 8.4 &&./gradlew :app:assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: VYVO-APK
