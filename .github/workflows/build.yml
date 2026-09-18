@@ -1,0 +1,135 @@
+name: Build VYVO APK
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      
+      - name: Create VYVO App
+        run: |
+          cat > settings.gradle <<'EOF'
+          include ':app'
+          EOF
+          
+          cat > build.gradle <<'EOF'
+          buildscript {
+            dependencies {
+              classpath 'com.android.tools.build:gradle:8.1.4'
+              classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0'
+            }
+          }
+          EOF
+          
+          mkdir -p app/src/main/java/com/vyvo/app
+          mkdir -p app/src/main/res/layout
+          
+          cat > app/build.gradle <<'EOF'
+          plugins {
+            id 'com.android.application'
+            id 'kotlin-android'
+          }
+          android {
+            namespace 'com.vyvo.app'
+            compileSdk 34
+            defaultConfig {
+              applicationId "com.vyvo.app"
+              minSdk 24
+              targetSdk 34
+              versionCode 1
+              versionName "1.0 VYVO"
+            }
+            buildTypes {
+              release {
+                minifyEnabled false
+              }
+            }
+          }
+          dependencies {
+            implementation 'androidx.core:core-ktx:1.12.0'
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.11.0'
+            implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+          }
+          EOF
+          
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <application android:theme="@android:style/Theme.NoTitleBar" android:label="VYVO">
+              <activity android:name=".MainActivity" android:exported="true">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN"/>
+                  <category android:name="android.intent.category.LAUNCHER"/>
+                </intent-filter>
+              </activity>
+            </application>
+          </manifest>
+          EOF
+          
+          cat > app/src/main/java/com/vyvo/app/MainActivity.kt <<'EOF'
+          package com.vyvo.app
+          import android.os.Bundle
+          import android.widget.*
+          import android.graphics.Color
+          import android.view.Gravity
+          import androidx.appcompat.app.AppCompatActivity
+          class MainActivity : AppCompatActivity() {
+            override fun onCreate(savedInstanceState: Bundle?) {
+              super.onCreate(savedInstanceState)
+              val layout = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setBackgroundColor(Color.BLACK)
+                gravity = Gravity.CENTER
+                setPadding(50,50,50,50)
+              }
+              val logo = TextView(this).apply {
+                text = "VYVO"
+                textSize = 60f
+                setTextColor(Color.parseColor("#D4AF37"))
+                gravity = Gravity.CENTER
+                letterSpacing = 0.2f
+              }
+              val sub = TextView(this).apply {
+                text = "App Officielle\n\nBienvenue Theyuri"
+                textSize = 18f
+                setTextColor(Color.WHITE)
+                gravity = Gravity.CENTER
+              }
+              val btn = Button(this).apply {
+                text = "ENTRER DANS VYVO"
+                setBackgroundColor(Color.parseColor("#D4AF37"))
+                setTextColor(Color.BLACK)
+              }
+              btn.setOnClickListener {
+                Toast.makeText(this, "VYVO est pret ! Firebase: vyvo-d5888", Toast.LENGTH_LONG).show()
+              }
+              layout.addView(logo)
+              layout.addView(sub)
+              layout.addView(btn)
+              setContentView(layout)
+            }
+          }
+          EOF
+          
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          chmod +x gradlew || echo "no wrapper, will use gradle"
+          
+      - name: Build with Gradle
+        run: |
+          wget https://services.gradle.org/distributions/gradle-8.4-bin.zip -q
+          unzip -q gradle-8.4-bin.zip
+          ./gradle-8.4/bin/gradle assembleDebug --no-daemon
+          
+      - name: Upload VYVO APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VYVO-APK-OFFICIELLE
+          path: app/build/outputs/apk/debug/*.apk
