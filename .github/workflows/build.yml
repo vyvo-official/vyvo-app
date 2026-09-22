@@ -1,4 +1,4 @@
-name: Build VYVO TikTok V1.3
+name: Build VYVO TikTok V1.4 Final
 on:
   push:
     branches: [ main ]
@@ -20,9 +20,6 @@ jobs:
           mkdir -p app/src/main/java/com/vyvo/app
           mkdir -p app/src/main/res/layout
           cat > settings.gradle <<'EOF'
-          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
-          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS) repositories { google(); mavenCentral() } }
-          rootProject.name = "VYVO TikTok"
           include ':app'
           EOF
           cat > build.gradle <<'EOF'
@@ -33,7 +30,7 @@ jobs:
           android {
             namespace 'com.vyvo.app'
             compileSdk 34
-            defaultConfig { applicationId "com.vyvo.app"; minSdk 24; targetSdk 34; versionCode 5; versionName "1.3" }
+            defaultConfig { applicationId "com.vyvo.app"; minSdk 24; targetSdk 34; versionCode 6; versionName "1.4" }
             buildTypes { release { minifyEnabled false } }
             compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
           }
@@ -60,12 +57,12 @@ jobs:
           EOF
           cat > app/src/main/res/layout/item_video.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#000">
-            <VideoView android:id="@+id/videoView" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center"/>
+          <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#111">
+            <VideoView android:id="@+id/videoView" android:layout_width="match_parent" android:layout_height="match_parent" />
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_gravity="bottom" android:padding="16dp">
               <TextView android:text="@vyvo_officiel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#fff" android:textStyle="bold" android:textSize="18sp"/>
-              <TextView android:text="VYVO TikTok 🔥 #vyvo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#fff"/>
-              <TextView android:id="@+id/btnLike" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="❤️ 12.5K  💬 342  ➕ S'abonner  🔴 LIVE" android:textColor="#ff004f" android:textStyle="bold" android:paddingTop="10dp"/>
+              <TextView android:text="VYVO TikTok V1.4 🔥" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#fff"/>
+              <TextView android:id="@+id/btnLike" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="❤️ 12.5K  💬 342  ➕  🔴 LIVE" android:textColor="#ff004f" android:textStyle="bold" android:paddingTop="10dp"/>
             </LinearLayout>
           </FrameLayout>
           EOF
@@ -103,5 +100,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: vyvo-tiktok-v13
+          name: vyvo-tiktok-v14-final
           path: app/build/outputs/apk/debug/app-debug.apk
