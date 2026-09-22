@@ -1,165 +1,338 @@
-name: Build VYVO TikTok V2.0 COMPLETE
+name: Build VYVO TikTok V1.5
+
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Create COMPLETE TikTok App
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.4'
+
+      - name: Create Android project
+        shell: bash
         run: |
           mkdir -p app/src/main/java/com/vyvo/app
           mkdir -p app/src/main/res/layout
-          mkdir -p gradle/wrapper
+          mkdir -p app/src/main/res/values
 
           cat > settings.gradle <<'EOF'
-          include ':app'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "VYVO-TikTok"
+          include(":app")
           EOF
 
           cat > build.gradle <<'EOF'
-          plugins { id 'com.android.application' version '8.1.4' apply false }
+          plugins {
+              id 'com.android.application' version '8.1.4' apply false
+          }
           EOF
 
           cat > app/build.gradle <<'EOF'
-          plugins { id 'com.android.application' }
-          android {
-            namespace 'com.vyvo.app'
-            compileSdk 34
-            defaultConfig { applicationId "com.vyvo.app"; minSdk 24; targetSdk 34; versionCode 20; versionName "2.0-COMPLETE" }
-            buildTypes { release { minifyEnabled false } }
-            compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+          plugins {
+              id 'com.android.application'
           }
+
+          android {
+              namespace 'com.vyvo.app'
+              compileSdk 34
+
+              defaultConfig {
+                  applicationId "com.vyvo.app"
+                  minSdk 24
+                  targetSdk 34
+                  versionCode 7
+                  versionName "1.5"
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+
           dependencies {
-            implementation 'androidx.appcompat:appcompat:1.6.1'
-            implementation 'androidx.viewpager2:viewpager2:1.0.0'
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'androidx.viewpager2:viewpager2:1.0.0'
+              implementation 'androidx.recyclerview:recyclerview:1.3.2'
           }
           EOF
 
+          cat > app/src/main/res/values/colors.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="black">#000000</color>
+              <color name="white">#FFFFFF</color>
+              <color name="red">#FF004F</color>
+          </resources>
+          EOF
+
+          cat > app/src/main/res/values/styles.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:windowFullscreen">true</item>
+                  <item name="android:colorAccent">#FF004F</item>
+                  <item name="android:navigationBarColor">#000000</item>
+                  <item name="android:statusBarColor">#000000</item>
+              </style>
+          </resources>
+          EOF
+
           cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-            <uses-permission android:name="android.permission.INTERNET" />
-            <application android:label="VYVO TikTok" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
-              <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="portrait">
-                <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
-              </activity>
-            </application>
+
+              <uses-permission android:name="android.permission.INTERNET" />
+
+              <application
+                  android:allowBackup="true"
+                  android:label="VYVO"
+                  android:theme="@style/AppTheme"
+                  android:usesCleartextTraffic="false">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:screenOrientation="portrait">
+
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+
+                  </activity>
+
+              </application>
+
           </manifest>
           EOF
 
           cat > app/src/main/res/layout/activity_main.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#000">
-            <androidx.viewpager2.widget.ViewPager2 android:id="@+id/viewPager" android:layout_width="match_parent" android:layout_height="match_parent" />
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_gravity="top" android:gravity="center" android:padding="12dp" android:background="#80000000">
-              <TextView android:text="Abonnements" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="#aaa" android:gravity="center"/>
-              <TextView android:text="Pour toi 🔥" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="#fff" android:textStyle="bold" android:gravity="center" android:textSize="16sp"/>
-              <TextView android:text="LIVE" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="#ff004f" android:gravity="center"/>
-            </LinearLayout>
+
+          <FrameLayout
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="#000000">
+
+              <androidx.viewpager2.widget.ViewPager2
+                  android:id="@+id/viewPager"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:orientation="vertical" />
+
           </FrameLayout>
           EOF
 
           cat > app/src/main/res/layout/item_video.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#000">
-            <VideoView android:id="@+id/videoView" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center"/>
-            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="horizontal" android:padding="10dp">
-              <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="bottom">
-                <TextView android:text="@vyvo_officiel • 2h" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#fff" android:textStyle="bold" android:textSize="16sp"/>
-                <TextView android:text="🔥 Le futur du Live Shopping est là! VYVO TikTok V2.0! #vyvo #tiktok #live #shopping" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#fff" android:layout_marginTop="6dp"/>
-                <TextView android:text="🎵 Son original - vyvo_officiel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#fff" android:layout_marginTop="8dp" android:textSize="12sp"/>
-              </LinearLayout>
-              <LinearLayout android:layout_width="wrap_content" android:layout_height="match_parent" android:orientation="vertical" android:gravity="bottom|center" android:paddingBottom="20dp">
-                <TextView android:id="@+id/btnProfile" android:layout_width="50dp" android:layout_height="50dp" android:text="👤" android:gravity="center" android:background="#333" android:textSize="24sp"/>
-                <TextView android:id="@+id/btnFollow" android:layout_width="20dp" android:layout_height="20dp" android:text="➕" android:gravity="center" android:background="#ff004f" android:layout_marginTop="-10dp" android:layout_gravity="center"/>
-                <TextView android:id="@+id/btnLike" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="❤️&#10;12.5K" android:textColor="#fff" android:gravity="center" android:layout_marginTop="20dp" android:textStyle="bold"/>
-                <TextView android:id="@+id/btnComment" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💬&#10;342" android:textColor="#fff" android:gravity="center" android:layout_marginTop="15dp" android:textStyle="bold"/>
-                <TextView android:id="@+id/btnMessage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="✉️&#10;Msg" android:textColor="#fff" android:gravity="center" android:layout_marginTop="15dp" android:textStyle="bold"/>
-                <TextView android:id="@+id/btnShare" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="↗️&#10;Partage" android:textColor="#fff" android:gravity="center" android:layout_marginTop="15dp" android:textStyle="bold"/>
-                <TextView android:id="@+id/btnLive" android:layout_width="60dp" android:layout_height="30dp" android:text="🔴 LIVE" android:textColor="#fff" android:background="#ff004f" android:gravity="center" android:layout_marginTop="15dp" android:textStyle="bold" android:textSize="10sp"/>
-              </LinearLayout>
-            </LinearLayout>
-          </FrameLayout>
-          EOF
 
-          cat > app/src/main/java/com/vyvo/app/VideoAdapter.java <<'EOF'
-          package com.vyvo.app;
-          import android.content.Context; import android.net.Uri; import android.view.*; import android.widget.*; import androidx.annotation.NonNull; import androidx.recyclerview.widget.RecyclerView; import java.util.List;
-          public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VH> {
-            Context ctx; List<String> urls;
-            public VideoAdapter(Context c, List<String> u){ ctx=c; urls=u; }
-            @NonNull @Override public VH onCreateViewHolder(@NonNull ViewGroup p, int t){ return new VH(LayoutInflater.from(ctx).inflate(R.layout.item_video, p, false)); }
-            @Override public void onBindViewHolder(@NonNull VH h, int pos){
-              h.videoView.setVideoURI(Uri.parse(urls.get(pos)));
-              h.videoView.setOnPreparedListener(mp->{ mp.setLooping(true); h.videoView.start(); });
-              h.btnLike.setOnClickListener(v-> Toast.makeText(ctx, "❤️ Liké! 12.6K", Toast.LENGTH_SHORT).show());
-              h.btnFollow.setOnClickListener(v-> Toast.makeText(ctx, "✅ Abonné à @vyvo_officiel!", Toast.LENGTH_SHORT).show());
-              h.btnComment.setOnClickListener(v-> Toast.makeText(ctx, "💬 Commentaires ouverts!", Toast.LENGTH_SHORT).show());
-              h.btnMessage.setOnClickListener(v-> Toast.makeText(ctx, "✉️ Message envoyé au créateur!", Toast.LENGTH_SHORT).show());
-              h.btnShare.setOnClickListener(v-> Toast.makeText(ctx, "↗️ Lien copié!", Toast.LENGTH_SHORT).show());
-              h.btnLive.setOnClickListener(v-> Toast.makeText(ctx, "🔴 LIVE lancé!", Toast.LENGTH_SHORT).show());
-              h.btnProfile.setOnClickListener(v-> Toast.makeText(ctx, "👤 Profil @vyvo_officiel", Toast.LENGTH_SHORT).show());
-            }
-            @Override public int getItemCount(){ return urls.size(); }
-            static class VH extends RecyclerView.ViewHolder{
-              VideoView videoView; TextView btnLike, btnFollow, btnComment, btnMessage, btnShare, btnLive, btnProfile;
-              VH(View v){ super(v);
-                videoView=v.findViewById(R.id.videoView);
-                btnLike=v.findViewById(R.id.btnLike); btnFollow=v.findViewById(R.id.btnFollow);
-                btnComment=v.findViewById(R.id.btnComment); btnMessage=v.findViewById(R.id.btnMessage);
-                btnShare=v.findViewById(R.id.btnShare); btnLive=v.findViewById(R.id.btnLive); btnProfile=v.findViewById(R.id.btnProfile);
-              }
-            }
-          }
+          <FrameLayout
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="#000000">
+
+              <VideoView
+                  android:id="@+id/videoView"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:layout_gravity="center" />
+
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_gravity="bottom"
+                  android:orientation="vertical"
+                  android:padding="18dp">
+
+                  <TextView
+                      android:id="@+id/username"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="@vyvo_officiel"
+                      android:textColor="#FFFFFF"
+                      android:textSize="18sp"
+                      android:textStyle="bold" />
+
+                  <TextView
+                      android:id="@+id/description"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="6dp"
+                      android:text="Bienvenue sur VYVO 🔥"
+                      android:textColor="#FFFFFF"
+                      android:textSize="15sp" />
+
+                  <TextView
+                      android:id="@+id/actions"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="12dp"
+                      android:text="❤️ 12.5K    💬 342    ➕    🔴 LIVE"
+                      android:textColor="#FFFFFF"
+                      android:textSize="17sp"
+                      android:textStyle="bold" />
+
+              </LinearLayout>
+
+          </FrameLayout>
           EOF
 
           cat > app/src/main/java/com/vyvo/app/MainActivity.java <<'EOF'
           package com.vyvo.app;
-          import android.app.Activity; import android.os.Bundle; import androidx.viewpager2.widget.ViewPager2; import java.util.Arrays; import java.util.List;
-          public class MainActivity extends Activity {
-            @Override protected void onCreate(Bundle b){ super.onCreate(b); setContentView(R.layout.activity_main);
-              ViewPager2 vp = findViewById(R.id.viewPager);
-              List<String> videos = Arrays.asList(
-                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"
-              );
-              vp.setAdapter(new VideoAdapter(this, videos));
-              vp.setOrientation(ViewPager2.ORIENTATION_VERTICAL);
-            }
+
+          import android.os.Bundle;
+          import androidx.appcompat.app.AppCompatActivity;
+          import androidx.viewpager2.widget.ViewPager2;
+
+          import java.util.ArrayList;
+          import java.util.List;
+
+          public class MainActivity extends AppCompatActivity {
+
+              private ViewPager2 viewPager;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_main);
+
+                  viewPager = findViewById(R.id.viewPager);
+
+                  List<String> videos = new ArrayList<>();
+
+                  videos.add("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4");
+                  videos.add("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4");
+                  videos.add("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4");
+
+                  VideoAdapter adapter = new VideoAdapter(this, videos);
+                  viewPager.setAdapter(adapter);
+              }
           }
           EOF
 
-          cat > gradle/wrapper/gradle-wrapper.properties <<'EOF'
-          distributionBase=GRADLE_USER_HOME
-          distributionPath=wrapper/dists
-          distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip
-          zipStoreBase=GRADLE_USER_HOME
-          zipStorePath=wrapper/dists
+          cat > app/src/main/java/com/vyvo/app/VideoAdapter.java <<'EOF'
+          package com.vyvo.app;
+
+          import android.content.Context;
+          import android.net.Uri;
+          import android.view.LayoutInflater;
+          import android.view.View;
+          import android.view.ViewGroup;
+          import android.widget.VideoView;
+
+          import androidx.annotation.NonNull;
+          import androidx.recyclerview.widget.RecyclerView;
+
+          import java.util.List;
+
+          public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHolder> {
+
+              private final Context context;
+              private final List<String> videos;
+
+              public VideoAdapter(Context context, List<String> videos) {
+                  this.context = context;
+                  this.videos = videos;
+              }
+
+              @NonNull
+              @Override
+              public VideoViewHolder onCreateViewHolder(
+                      @NonNull ViewGroup parent,
+                      int viewType) {
+
+                  View view = LayoutInflater.from(context)
+                          .inflate(R.layout.item_video, parent, false);
+
+                  return new VideoViewHolder(view);
+              }
+
+              @Override
+              public void onBindViewHolder(
+                      @NonNull VideoViewHolder holder,
+                      int position) {
+
+                  String url = videos.get(position);
+
+                  holder.videoView.setVideoURI(Uri.parse(url));
+
+                  holder.videoView.setOnPreparedListener(mp -> {
+                      mp.setLooping(true);
+                      holder.videoView.start();
+                  });
+              }
+
+              @Override
+              public void onViewRecycled(@NonNull VideoViewHolder holder) {
+                  holder.videoView.stopPlayback();
+                  super.onViewRecycled(holder);
+              }
+
+              @Override
+              public int getItemCount() {
+                  return videos.size();
+              }
+
+              static class VideoViewHolder extends RecyclerView.ViewHolder {
+
+                  VideoView videoView;
+
+                  VideoViewHolder(@NonNull View itemView) {
+                      super(itemView);
+                      videoView = itemView.findViewById(R.id.videoView);
+                  }
+              }
+          }
           EOF
 
-          cat > gradlew <<'GRADLEW'
-          #!/bin/sh
-          DIR="$(cd "$(dirname "$0")" && pwd)"
-          CLASSPATH="$DIR/gradle/wrapper/gradle-wrapper.jar"
-          exec java -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"
-          GRADLEW
-          chmod +x gradlew
-          curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-
       - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: vyvo-tiktok-V2-COMPLETE
+          name: VYVO-TikTok-V1.5-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+EOF
